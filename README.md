@@ -2,7 +2,7 @@
 
 An AI that taught itself Connect Four by playing against itself, and a small web app where you can play against it.
 
-**[Play it here](https://connect-four-ai.streamlit.app)**
+**[Play it here](https://try-to-connect-four.streamlit.app)**
 
 <!-- Add the demo GIF as docs/demo.gif, then delete this line and the closing arrow line below the image.
 <p align="center">
