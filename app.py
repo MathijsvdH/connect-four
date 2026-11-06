@@ -1,5 +1,5 @@
 # Streamlit web app: play Connect Four against the DQN agent from connect_four_deep_rl.ipynb.
-# Every game is saved to data/games.jsonl and, after each finished game, the agent fine-tunes on all saved games.
+# Every game is saved to data/games.jsonl. With LEARN on, the agent also fine-tunes on all saved games after each game.
 # Run:  pip install -r requirements.txt   then   streamlit run app.py
 import os, threading
 from datetime import datetime
@@ -11,6 +11,9 @@ BASE_MODELS = [os.path.join(HERE, "models", f) for f in ("c4_strong.pt", "c4_bas
 LIVE_MODEL = os.path.join(HERE, "models", "c4_live.pt")      # base model + what it learned in the app; deleting it = reset
 GAMES_LOG = os.path.join(HERE, "data", "games.jsonl")
 LEARN_STEPS = 100                                             # gradient steps after every finished game
+# Off for the hosted app: the cloud disk resets on every restart, and games against casual human players are
+# too easy to teach the agent anything useful. Set to True to try the learning loop locally.
+LEARN = False
 
 def ui_file(name):
     with open(os.path.join(HERE, "ui", name), encoding="utf-8") as f: return f.read()
@@ -32,7 +35,7 @@ def board_component():
 # The live model is used once it exists. The cache is keyed on the file's modification time,
 # so new weights saved after a game are picked up automatically on the next rerun.
 def model_path():
-    return next((p for p in (LIVE_MODEL, *BASE_MODELS) if os.path.exists(p)), None)
+    return next((p for p in ((LIVE_MODEL,) if LEARN else ()) + tuple(BASE_MODELS) if os.path.exists(p)), None)
 
 @st.cache_resource(max_entries=2)
 def load_ai(path, mtime):
@@ -60,7 +63,7 @@ def human_move(c):
     if not b.is_terminal(): ai_move()
     if b.is_terminal():
         record_game("draw" if b.winner is None else ("human" if b.winner == ss.human_player else "ai"))
-        ss.pending_learn = ss.learn
+        ss.pending_learn = LEARN and ss.learn
 
 def on_move():
     m = ss.c4.get("move")
@@ -123,12 +126,12 @@ with st.expander("Settings"):
     st.segmented_control("First move (next game)", ["You", "AI", "Alternate"], key="starter")
     st.slider("AI look-ahead (moves)", 0, 4, key="depth",
               help="0 = the network's greedy move. Higher = negamax search with the network judging the positions at the horizon: stronger, a bit slower.")
-    c1, c2 = st.columns(2)
-    c1.toggle("Learn after every game", key="learn")
-    c2.toggle("Show the AI's evaluation", key="show_eval")
+    if LEARN: st.toggle("Learn after every game", key="learn")
+    st.toggle("Show the AI's evaluation", key="show_eval")
     ck = get_ai().ck
     model = (f"c4_live.pt, fine-tuned {ck.get('updates', 0)} times in this app" if model_path() == LIVE_MODEL
              else f"{os.path.basename(model_path())}, as exported by the notebook")
     st.caption(f"Model: {model} · running on {DEVICE.type.upper()} · {len(res)} games saved in data/games.jsonl")
-    sure = st.checkbox("Forget what the AI learned here (saved games are kept)")
-    st.button("Reset model", on_click=reset_model, disabled=not sure or not os.path.exists(LIVE_MODEL))
+    if LEARN:
+        sure = st.checkbox("Forget what the AI learned here (saved games are kept)")
+        st.button("Reset model", on_click=reset_model, disabled=not sure or not os.path.exists(LIVE_MODEL))

@@ -15,7 +15,7 @@ function build(root) {
   wrap.insertAdjacentHTML("beforeend", `
     <div class="c4">
       <div class="head">
-        <div><div class="title">Connect Four</div><div class="sub">against a Double DQN that learns from every game</div></div>
+        <div><div class="title">Connect Four</div><div class="sub">against a Double DQN trained by self-play</div></div>
         <div class="status"><span class="dot"></span><span class="txt"></span></div>
       </div>
       <div class="stage locked">

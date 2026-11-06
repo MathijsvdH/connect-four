@@ -1,7 +1,9 @@
 # Web app (app.py + connect4.py + ui/). The notebook itself also needs open_spiel, pandas and matplotlib (Linux / Colab).
-# NVIDIA GPU: install the CUDA build of torch first, e.g.
+# torch comes from the CPU-only index: the default Linux build bundles CUDA (several GB), too big for Streamlit Cloud.
+# NVIDIA GPU locally: install the CUDA build of torch afterwards, e.g.
 #   pip install torch --index-url https://download.pytorch.org/whl/cu130   (RTX 50xx needs cu128 or newer)
-# The app then runs the network and the fine-tuning on the GPU automatically (set C4_DEVICE=cpu to force the CPU).
+# The app then runs the network on the GPU automatically (set C4_DEVICE=cpu to force the CPU).
+--extra-index-url https://download.pytorch.org/whl/cpu
 numpy
 torch
 streamlit>=1.51
