@@ -4,12 +4,6 @@ An AI that taught itself Connect Four by playing against itself, and a small web
 
 **[Play it here](https://try-to-connect-four.streamlit.app)**
 
-<!-- Add the demo GIF as docs/demo.gif, then delete this line and the closing arrow line below the image.
-<p align="center">
-  <img src="docs/demo.gif" alt="Playing Connect Four against the AI" width="420">
-</p>
--->
-
 ## What's inside
 
 - **The notebook** (`connect_four_deep_rl.ipynb`) trains the AI with deep reinforcement learning. It starts knowing only the rules and improves over thousands of games against itself. It also compares different ways of learning and tests the AI against other bots.

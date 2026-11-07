@@ -129,9 +129,9 @@ with st.expander("Settings"):
     if LEARN: st.toggle("Learn after every game", key="learn")
     st.toggle("Show the AI's evaluation", key="show_eval")
     ck = get_ai().ck
-    model = (f"c4_live.pt, fine-tuned {ck.get('updates', 0)} times in this app" if model_path() == LIVE_MODEL
-             else f"{os.path.basename(model_path())}, as exported by the notebook")
-    st.caption(f"Model: {model} · running on {DEVICE.type.upper()} · {len(res)} games saved in data/games.jsonl")
+    # model = (f"c4_live.pt, fine-tuned {ck.get('updates', 0)} times in this app" if model_path() == LIVE_MODEL
+             #else f"{os.path.basename(model_path())}, as exported by the notebook")
+    # st.caption(f"Model: {model} · running on {DEVICE.type.upper()} · {len(res)} games saved in data/games.jsonl")
     if LEARN:
         sure = st.checkbox("Forget what the AI learned here (saved games are kept)")
         st.button("Reset model", on_click=reset_model, disabled=not sure or not os.path.exists(LIVE_MODEL))
