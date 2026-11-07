@@ -16,7 +16,10 @@ function build(root) {
     <div class="c4">
       <div class="head">
         <div><div class="title">Connect Four</div><div class="sub">against a Double DQN trained by self-play</div></div>
-        <div class="status"><span class="dot"></span><span class="txt"></span></div>
+        <div class="side">
+          <div class="status"><span class="dot"></span><span class="txt"></span></div>
+          <button class="mode" type="button"></button>
+        </div>
       </div>
       <div class="stage locked">
         <div class="back"></div>
@@ -30,7 +33,7 @@ function build(root) {
   const $ = (s) => root.querySelector(s);
   const ui = { c4: $(".c4"), stage: $(".stage"), discs: $(".discs"), ghost: $(".ghost"), colhi: $(".colhi"), hits: $(".hits"),
                evals: $(".evals"), status: $(".status"), dot: $(".status .dot"), txt: $(".status .txt"),
-               rec: $(".rec"), note: $(".note"), newBtn: $(".new"), cell: MAX_CELL };
+               rec: $(".rec"), note: $(".note"), newBtn: $(".new"), modeBtn: $(".mode"), cell: MAX_CELL };
 
   // front plate: rounded rectangle with 42 round holes (even-odd fill), drawn in cell units so it scales crisply
   const W = COLS + 2 * PAD, H = ROWS + 2 * PAD, k = 0.4, q = 0.3;
@@ -53,7 +56,51 @@ function build(root) {
     s.setProperty("--stage-w", `${(COLS + 2 * PAD) * ui.cell}px`);
   };
   new ResizeObserver(fit).observe(ui.c4); fit();
+
+  // follow Streamlit's light/dark theme: check the page background now, when its styles change and when the OS theme flips
+  const theme = () => {
+    const dark = pageIsDark();
+    if (ui.c4.classList.contains("dark") === dark && ui.modeBtn.innerHTML) return;
+    ui.c4.classList.toggle("dark", dark);
+    ui.modeBtn.innerHTML = dark ? SUN : MOON;          // the button shows the theme it switches to
+    ui.modeBtn.title = dark ? "Switch to light mode" : "Switch to dark mode";
+    ui.modeBtn.setAttribute("aria-label", ui.modeBtn.title);
+  };
+  const app = document.querySelector(".stApp");
+  if (app) new MutationObserver(theme).observe(app, { attributes: true, attributeFilter: ["class", "style"] });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => setTimeout(theme, 50));
+  ui.modeBtn.addEventListener("click", () => switchTheme(pageIsDark() ? "Light" : "Dark"));
+  ui.theme = theme; theme();
   return ui;
+}
+
+// ---- light/dark theme
+const SUN = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>`;
+const MOON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>`;
+
+// Streamlit has no Python API to change the theme, so this picks "Light"/"Dark" in its main menu (rendered because
+// toolbarMode = "viewer", kept out of sight by ui/page.css). That switches live and Streamlit remembers it per browser.
+// If the menu isn't there, store the same choice where Streamlit reads it on load and reload the page.
+async function switchTheme(name) {
+  const escape = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  const menu = document.querySelector('[data-testid="stMainMenu"] button');
+  if (menu) {
+    menu.click();
+    for (let i = 0; i < 40; i++) {
+      const item = document.querySelector(`[data-testid="stMainMenuItem-theme-${name}"]`);
+      if (item) { item.click(); escape(); return; }
+      await new Promise((res) => setTimeout(res, 25));
+    }
+    escape();
+  }
+  try { localStorage.setItem(`stActiveTheme-${location.pathname}-v2`, JSON.stringify(name)); location.reload(); } catch {}
+}
+
+function pageIsDark() {
+  const bg = getComputedStyle(document.querySelector(".stApp") || document.body).backgroundColor;
+  const [r, g, b, a = 1] = (bg.match(/[\d.]+/g) || []).map(Number);
+  if (r === undefined || a === 0) return matchMedia("(prefers-color-scheme: dark)").matches;
+  return 0.299 * r + 0.587 * g + 0.114 * b < 128;
 }
 
 // ---- animations
@@ -159,6 +206,7 @@ export default function (component) {
   }
   const { ui, st } = view;
   st.send = setTriggerValue; st.data = data;
+  ui.theme();
 
   // a new game: clear the board (instantly on a fresh mount)
   if (data.game !== st.game) {

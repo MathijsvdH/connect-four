@@ -1,5 +1,8 @@
-/* Page chrome: hide Streamlit's header/footer and keep one narrow centred column */
+/* Page chrome: hide Streamlit's header/footer and keep one narrow centred column.
+   Colours come from the light/dark themes in .streamlit/config.toml, so nothing here is theme-specific. */
 header[data-testid="stHeader"], footer, [data-testid="stDecoration"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 [data-testid="stMainBlockContainer"] { padding-top: 2.2rem; padding-bottom: 3rem; max-width: 600px; }
-[data-testid="stExpander"] details { border-color: #e2e0d9; background: transparent; }
-[data-testid="stExpander"] summary p { font-size: 0.9rem; color: #6e6e73; }
+[data-testid="stExpander"] details { background: transparent; }
+[data-testid="stExpander"] summary p { font-size: 0.9rem; opacity: .65; }
+/* the main menu is only opened by the board's theme button (ui/board.js), so its popover never shows */
+[data-testid="stMainMenuPopover"] { opacity: 0 !important; pointer-events: none !important; }
