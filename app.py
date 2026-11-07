@@ -22,7 +22,7 @@ st.set_page_config(page_title="Connect Four", page_icon=":material/radio_button_
                    initial_sidebar_state="collapsed")
 st.html(f"<style>{ui_file('page.css')}</style>")
 ss = st.session_state
-for k, v in dict(starter="Alternate", depth=3, learn=True, show_eval=False, game_id=0, note="", results=[]).items(): ss.setdefault(k, v)
+for k, v in dict(starter="Alternate", depth=2, learn=True, show_eval=False, game_id=0, note="", results=[]).items(): ss.setdefault(k, v)
 
 
 # ---- The board: a custom component (ui/board.js + ui/board.css) that animates the game and sends clicks back
