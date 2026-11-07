@@ -22,7 +22,7 @@ st.set_page_config(page_title="Connect Four", page_icon=":material/radio_button_
                    initial_sidebar_state="collapsed")
 st.html(f"<style>{ui_file('page.css')}</style>")
 ss = st.session_state
-for k, v in dict(starter="Alternate", depth=3, learn=True, show_eval=False, game_id=0, note="").items(): ss.setdefault(k, v)
+for k, v in dict(starter="Alternate", depth=3, learn=True, show_eval=False, game_id=0, note="", results=[]).items(): ss.setdefault(k, v)
 
 
 # ---- The board: a custom component (ui/board.js + ui/board.css) that animates the game and sends clicks back
@@ -73,6 +73,7 @@ def record_game(result):
     save_game(GAMES_LOG, dict(time=datetime.now().isoformat(timespec="seconds"), human_player=ss.human_player,
                               moves=ss.board.moves, result=result, depth=ss.depth, model=os.path.basename(model_path())))
     ss.saved = True
+    ss.results = ss.results + [result]                       # this session's score only: a refresh resets it
 
 def new_game():
     if "board" in ss and ss.board.moves and not ss.saved: record_game("unfinished")   # an abandoned game is still data
@@ -109,7 +110,7 @@ if "board" not in ss: new_game()
 
 # ---- Page: board component, then a collapsed settings panel
 b = ss.board
-res = [g["result"] for g in load_games(GAMES_LOG)]
+res = ss.results
 learning = bool(ss.get("pending_learn"))
 board_component()(
     key="c4", height="content",
